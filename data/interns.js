@@ -5,14 +5,14 @@ export const interns = [
   {
     id: "sila",
     nombre: "Sila",
-    github: "sila",
+    github: "MrDriming",
     color: "#7c3aed",
     icon: "Squirrel",
   },
   {
     id: "shamira",
     nombre: "Shamira",
-    github: "shamira",
+    github: "shamiramicaelalevia",
     color: "#22d3ee",
     icon: "Bird",
   },
