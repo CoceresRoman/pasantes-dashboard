@@ -12,7 +12,7 @@ export const interns = [
   {
     id: "shamira",
     nombre: "Shamira",
-    github: "shamiramicaelalevia-create",
+    github: "shamiramicaelaleiva-create",
     color: "#22d3ee",
     icon: "Bird",
   },
