@@ -13,6 +13,7 @@ import {
   isUnlocked,
   loadActiveIntern,
   saveActiveIntern,
+  applySyncedCompletions,
 } from "@/lib/storage";
 import XPBar from "@/components/XPBar";
 import MissionCard from "@/components/MissionCard";
@@ -20,12 +21,15 @@ import Leaderboard from "@/components/Leaderboard";
 import StreakCounter from "@/components/StreakCounter";
 import MissionModal from "@/components/MissionModal";
 import InternPicker from "@/components/InternPicker";
+import Icon from "@/components/Icon";
 
 export default function Home() {
   const [state, setState] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [openMission, setOpenMission] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState(null);
 
   useEffect(() => {
     setState(loadState());
@@ -89,6 +93,42 @@ export default function Home() {
     });
   }
 
+  async function handleSync() {
+    if (!activeId || syncing) return;
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch(`/api/sync?intern=${activeId}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) {
+        setSyncMsg({ type: "error", text: data.error || "Error sincronizando" });
+        return;
+      }
+      const prevTier = getTier(xp);
+      const { state: nextState, newOnes } = applySyncedCompletions(state, activeId, data.completions);
+      setState(nextState);
+      if (newOnes.length > 0) {
+        celebrate(true);
+        const newXP = getCompletedXP(nextState[activeId], missions);
+        const newTier = getTier(newXP);
+        if (newTier.min > prevTier.min) {
+          setTimeout(() => celebrate(true), 600);
+        }
+      }
+      setSyncMsg({
+        type: "ok",
+        text: newOnes.length > 0
+          ? `${newOnes.length} misión(es) nueva(s) detectada(s) en GitHub`
+          : `${data.found} misión(es) en GitHub, todo al día`,
+      });
+    } catch (e) {
+      setSyncMsg({ type: "error", text: "No se pudo conectar al server" });
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(null), 5000);
+    }
+  }
+
   if (!mounted) return null;
   if (!activeIntern) return <InternPicker interns={interns} onPick={pickIntern} />;
 
@@ -97,10 +137,14 @@ export default function Home() {
       <header className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <div
-            className="text-5xl p-2 rounded-full ring-2"
-            style={{ borderColor: activeIntern.color, boxShadow: `0 0 20px ${activeIntern.color}55` }}
+            className="p-3 rounded-full ring-2"
+            style={{
+              borderColor: activeIntern.color,
+              boxShadow: `0 0 20px ${activeIntern.color}55`,
+              color: activeIntern.color,
+            }}
           >
-            {activeIntern.emoji}
+            <Icon name={activeIntern.icon} size={40} strokeWidth={1.6} />
           </div>
           <div>
             <div className="text-xs text-zinc-400 uppercase tracking-wider">Tu pasaporte</div>
@@ -115,10 +159,23 @@ export default function Home() {
             </button>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-xs text-zinc-400 uppercase tracking-wider">Progreso</div>
-          <div className="text-lg font-bold">
-            {Object.keys(activeState?.completed || {}).length} / {missions.length}
+
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-2 px-3 py-2 rounded bg-accent hover:bg-violet-500 disabled:opacity-50 text-white text-sm transition"
+          >
+            <Icon name="RefreshCw" size={16} className={syncing ? "animate-spin" : ""} />
+            {syncing ? "Sincronizando..." : "Sincronizar con GitHub"}
+          </button>
+          {syncMsg && (
+            <div className={`text-xs ${syncMsg.type === "error" ? "text-red-400" : "text-emerald-400"}`}>
+              {syncMsg.text}
+            </div>
+          )}
+          <div className="text-xs text-zinc-500">
+            {Object.keys(activeState?.completed || {}).length} / {missions.length} misiones
           </div>
         </div>
       </header>
@@ -137,16 +194,20 @@ export default function Home() {
           <section key={acto}>
             <h2 className="text-xl font-bold mb-3 text-accent2">{acto}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {ms.map((m) => (
-                <MissionCard
-                  key={m.id}
-                  mission={m}
-                  completed={Boolean(activeState?.completed?.[m.id])}
-                  unlocked={isUnlocked(m.id, activeState, missions)}
-                  onToggle={handleToggle}
-                  onClick={setOpenMission}
-                />
-              ))}
+              {ms.map((m) => {
+                const c = activeState?.completed?.[m.id];
+                return (
+                  <MissionCard
+                    key={m.id}
+                    mission={m}
+                    completed={Boolean(c)}
+                    syncedPrUrl={c?.source === "github" ? c.prUrl : null}
+                    unlocked={isUnlocked(m.id, activeState, missions)}
+                    onToggle={handleToggle}
+                    onClick={setOpenMission}
+                  />
+                );
+              })}
             </div>
           </section>
         ))}

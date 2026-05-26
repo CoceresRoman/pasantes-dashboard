@@ -1,17 +1,19 @@
-// Configurá acá los pasantes. El nombre se muestra, github se usa para auto-check de PRs.
+// Configurá acá los pasantes.
+// `github`: username de GitHub real (se usa para auto-sync de PRs).
+// `icon`: nombre de icono de lucide-react.
 export const interns = [
   {
     id: "sila",
     nombre: "Sila",
     github: "sila",
     color: "#7c3aed",
-    emoji: "🦊",
+    icon: "Squirrel",
   },
   {
     id: "shamira",
     nombre: "Shamira",
     github: "shamira",
     color: "#22d3ee",
-    emoji: "🦉",
+    icon: "Bird",
   },
 ];

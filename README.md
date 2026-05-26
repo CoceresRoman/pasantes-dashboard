@@ -47,9 +47,26 @@ npx vercel
 
 O importar el repo en [vercel.com/new](https://vercel.com/new).
 
-## Próximas mejoras (issues abiertos)
+## Auto-sync con GitHub
 
-- [ ] Auto-detección de PR mergeado vía GitHub API (token en env)
+Si configurás `GITHUB_TOKEN` en variables de entorno (Vercel → Settings → Environment Variables), el botón "Sincronizar con GitHub" del dashboard:
+
+1. Llama a `/api/sync?intern=<id>`
+2. El server consulta GitHub Search API por PRs mergeados del username del pasante
+3. Matchea el `matchCode` de cada misión contra el título y body del PR
+4. Marca como completadas las que matchearon (con link al PR)
+
+**Convención de PR**: el título o body del PR debe contener el código de la misión como palabra completa.
+
+Ejemplos válidos:
+- `feat(m1): saludo dinamico funcionando`
+- `feat: implementar M3 lista de tareas`
+- `fix(boss2): corregir layout de pokedex`
+
+El token necesita scope `public_repo` (o `repo` si los repos son privados).
+
+## Próximas mejoras
+
 - [ ] Bot de Discord que avise misión completada
 - [ ] Página `/historia` con timeline cronológico
 - [ ] Export del pasaporte como PNG/PDF para CV

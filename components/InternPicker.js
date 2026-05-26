@@ -1,5 +1,7 @@
 "use client";
 
+import Icon from "./Icon";
+
 export default function InternPicker({ interns, onPick }) {
   return (
     <div className="fixed inset-0 bg-bg/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -14,12 +16,16 @@ export default function InternPicker({ interns, onPick }) {
             <button
               key={i.id}
               onClick={() => onPick(i.id)}
-              className="card p-8 hover:scale-105 transition group"
+              className="card p-8 hover:scale-105 transition group flex flex-col items-center gap-3"
               style={{ borderColor: i.color }}
             >
-              <div className="text-7xl mb-3 group-hover:animate-bounce-slow">{i.emoji}</div>
+              <div style={{ color: i.color }} className="group-hover:animate-bounce-slow">
+                <Icon name={i.icon} size={80} strokeWidth={1.4} />
+              </div>
               <div className="text-2xl font-bold" style={{ color: i.color }}>{i.nombre}</div>
-              <div className="text-xs text-zinc-500 mt-2">Soy yo →</div>
+              <div className="text-xs text-zinc-500 flex items-center gap-1">
+                Soy yo <Icon name="ArrowRight" size={12} />
+              </div>
             </button>
           ))}
         </div>
