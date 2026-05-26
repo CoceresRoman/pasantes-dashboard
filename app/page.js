@@ -4,27 +4,50 @@ import { useEffect, useState, useMemo } from "react";
 import confetti from "canvas-confetti";
 import { missions, totalXP, getTier } from "@/data/missions";
 import { interns } from "@/data/interns";
-import { loadState, saveState, markCompleted, unmarkCompleted, getCompletedXP, isUnlocked } from "@/lib/storage";
+import {
+  loadState,
+  saveState,
+  markCompleted,
+  unmarkCompleted,
+  getCompletedXP,
+  isUnlocked,
+  loadActiveIntern,
+  saveActiveIntern,
+} from "@/lib/storage";
 import XPBar from "@/components/XPBar";
 import MissionCard from "@/components/MissionCard";
 import Leaderboard from "@/components/Leaderboard";
 import StreakCounter from "@/components/StreakCounter";
 import MissionModal from "@/components/MissionModal";
+import InternPicker from "@/components/InternPicker";
 
 export default function Home() {
   const [state, setState] = useState({});
-  const [activeId, setActiveId] = useState(interns[0].id);
+  const [activeId, setActiveId] = useState(null);
   const [openMission, setOpenMission] = useState(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setState(loadState());
+    setActiveId(loadActiveIntern());
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (mounted) saveState(state);
   }, [state, mounted]);
+
+  function pickIntern(id) {
+    saveActiveIntern(id);
+    setActiveId(id);
+  }
+
+  function switchIntern() {
+    if (confirm("¿Cambiar de pasaporte? Tu progreso se mantiene guardado.")) {
+      saveActiveIntern(null);
+      setActiveId(null);
+    }
+  }
 
   const activeIntern = interns.find((i) => i.id === activeId);
   const activeState = state[activeId];
@@ -67,20 +90,36 @@ export default function Home() {
   }
 
   if (!mounted) return null;
+  if (!activeIntern) return <InternPicker interns={interns} onPick={pickIntern} />;
 
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">
-            <span className="text-accent">{activeIntern.emoji}</span> Pasaporte: {activeIntern.nombre}
-          </h1>
-          <p className="text-zinc-400 text-sm mt-1">
-            {Object.keys(activeState?.completed || {}).length} / {missions.length} misiones completadas
-          </p>
+        <div className="flex items-center gap-4">
+          <div
+            className="text-5xl p-2 rounded-full ring-2"
+            style={{ borderColor: activeIntern.color, boxShadow: `0 0 20px ${activeIntern.color}55` }}
+          >
+            {activeIntern.emoji}
+          </div>
+          <div>
+            <div className="text-xs text-zinc-400 uppercase tracking-wider">Tu pasaporte</div>
+            <h1 className="text-3xl font-bold" style={{ color: activeIntern.color }}>
+              {activeIntern.nombre}
+            </h1>
+            <button
+              onClick={switchIntern}
+              className="text-xs text-zinc-500 hover:text-accent2 underline mt-1"
+            >
+              No soy {activeIntern.nombre} → cambiar
+            </button>
+          </div>
         </div>
-        <div className="text-right text-xs text-zinc-500">
-          v0.1 · datos en localStorage
+        <div className="text-right">
+          <div className="text-xs text-zinc-400 uppercase tracking-wider">Progreso</div>
+          <div className="text-lg font-bold">
+            {Object.keys(activeState?.completed || {}).length} / {missions.length}
+          </div>
         </div>
       </header>
 
@@ -91,13 +130,7 @@ export default function Home() {
         <StreakCounter streak={activeState?.streak} />
       </div>
 
-      <Leaderboard
-        state={state}
-        interns={interns}
-        missions={missions}
-        activeId={activeId}
-        onSelect={setActiveId}
-      />
+      <Leaderboard state={state} interns={interns} missions={missions} activeId={activeId} />
 
       <div className="space-y-8">
         {Object.entries(byActo).map(([acto, ms]) => (
