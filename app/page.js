@@ -22,6 +22,7 @@ import StreakCounter from "@/components/StreakCounter";
 import MissionModal from "@/components/MissionModal";
 import InternPicker from "@/components/InternPicker";
 import Icon from "@/components/Icon";
+import Link from "next/link";
 
 export default function Home() {
   const [state, setState] = useState({});
@@ -161,14 +162,23 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col items-end gap-2">
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center gap-2 px-3 py-2 rounded bg-accent hover:bg-violet-500 disabled:opacity-50 text-white text-sm transition"
-          >
-            <Icon name="RefreshCw" size={16} className={syncing ? "animate-spin" : ""} />
-            {syncing ? "Sincronizando..." : "Sincronizar con GitHub"}
-          </button>
+          <div className="flex gap-2">
+            <Link
+              href="/tutoriales"
+              className="flex items-center gap-2 px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm transition"
+            >
+              <Icon name="BookOpen" size={16} />
+              Tutoriales
+            </Link>
+            <button
+              onClick={handleSync}
+              disabled={syncing}
+              className="flex items-center gap-2 px-3 py-2 rounded bg-accent hover:bg-violet-500 disabled:opacity-50 text-white text-sm transition"
+            >
+              <Icon name="RefreshCw" size={16} className={syncing ? "animate-spin" : ""} />
+              {syncing ? "Sincronizando..." : "Sincronizar con GitHub"}
+            </button>
+          </div>
           {syncMsg && (
             <div className={`text-xs ${syncMsg.type === "error" ? "text-red-400" : "text-emerald-400"}`}>
               {syncMsg.text}

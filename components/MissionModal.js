@@ -1,10 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import Icon from "./Icon";
 import { dificultadIcon } from "@/data/missions";
+import { tutorials } from "@/data/tutorials";
 
 export default function MissionModal({ mission, onClose }) {
   if (!mission) return null;
+  const hasTutorial = Boolean(tutorials[mission.id]);
+
   return (
     <div
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -34,8 +38,23 @@ export default function MissionModal({ mission, onClose }) {
           </button>
         </div>
 
+        {hasTutorial && (
+          <Link
+            href={`/tutoriales/${mission.id}`}
+            className="block mb-4 p-3 rounded bg-accent/20 hover:bg-accent/30 border border-accent/40 transition"
+          >
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm font-bold text-accent2">
+                <Icon name="BookOpen" size={16} />
+                Ver tutorial paso a paso
+              </span>
+              <Icon name="ArrowRight" size={16} className="text-accent2" />
+            </div>
+          </Link>
+        )}
+
         <p className="text-zinc-300 text-sm mb-4">
-          El briefing completo está en el repo del pasaporte:
+          Briefing completo en el repo del pasaporte:
         </p>
         <code className="block bg-zinc-900 p-3 rounded text-xs text-emerald-300 break-all">
           misiones/{mission.code.toLowerCase().replace(/[. ]/g, "")}-*.md
@@ -43,11 +62,14 @@ export default function MissionModal({ mission, onClose }) {
 
         <div className="mt-5 text-xs text-zinc-400 space-y-2">
           <p>
-            Cuando termines y mergees el PR, el dashboard lo detecta solo si el título
-            del PR contiene <code className="bg-zinc-800 px-1 rounded">{mission.matchCode}</code>.
+            Para que el dashboard la detecte, el título o body del PR debe contener{" "}
+            <code className="bg-zinc-800 px-1 rounded">{mission.matchCode}</code>.
           </p>
           <p>
-            Ejemplo: <code className="bg-zinc-800 px-1 rounded">feat({mission.matchCode.toLowerCase()}): {mission.titulo.toLowerCase()}</code>
+            Ejemplo:{" "}
+            <code className="bg-zinc-800 px-1 rounded">
+              feat({mission.matchCode.toLowerCase()}): {mission.titulo.toLowerCase()}
+            </code>
           </p>
         </div>
       </div>
